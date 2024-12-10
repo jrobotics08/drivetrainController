@@ -113,15 +113,25 @@ class Dtrain
 
         if(direction == 0)
         {
-          //forward
+          leftMotorA.spin(forward);
+          rightMotorA.spin(forward);
+
+          leftMotorB.spin(forward);
+          rightMotorB.spin(forward);
         }
         if(direction == 1)
         {
           //backward
+          leftMotorA.spin(reverse);
+          rightMotorA.spin(reverse);
+
+          leftMotorB.spin(reverse);
+          rightMotorB.spin(reverse);
         }
         else
         {
           //error
+          cout << "return error, invalid input";
           return;
         }
          
@@ -174,6 +184,8 @@ int main() {
 
     leftMotorB.spin(forward);
     rightMotorB.spin(forward);
+
+    //do direction and shit here for thr dtrain move func
   }
   //if the controller axis isnt centered then rotate
   else {
