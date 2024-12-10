@@ -78,10 +78,10 @@ bool RemoteControlCodeEnabled = true;
 
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
-/*    Module:       main.cpp                                                  */
-/*    Author:       {author}                                                  */
-/*    Created:      {date}                                                    */
-/*    Description:  V5 project                                                */
+/*    Module:       drivetrainController.cpp                                                  */
+/*    Author:       Joey Riley(Berm robotics B team)                                                  */
+/*    Created:      a while ago                                                  */
+/*    Description:  Mecanum drivetrain controller for our competition bot                                               */
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
@@ -94,16 +94,26 @@ using namespace vex;
 
 class Dtrain
 {
-  private:
+  public:
     int accelerationValue;
     int maxTorque;
+
+  public:
+    void Stop()
+    {
+      leftMotorA.stop();
+      rightMotorA.stop();
+
+      leftMotorB.stop();
+      rightMotorB.stop();
+    }
     
-    void Drive(int accelerationValueCon, int direction)
+     void Drive(int accelerationValueCon, int direction)
     {
         accelerationValue = accelerationValueCon;
         //0 = forward
         //1 = reverse
-        //over 1 is invalid so dont let it happen
+        //2 = sideways
 
         leftMotorA.setVelocity(accelerationValue,percent);
         rightMotorA.setVelocity(accelerationValue,percent);
@@ -128,10 +138,19 @@ class Dtrain
           leftMotorB.spin(reverse);
           rightMotorB.spin(reverse);
         }
+
+        if(direction == 2)
+        {
+          leftMotorA.spin(forward);
+          leftMotorB.spin(reverse);
+
+          rightMotorA.spin(forward);
+          rightMotorB.spin(reverse);
+        }
         else
         {
           //error
-          cout << "return error, invalid input";
+
           return;
         }
          
@@ -170,31 +189,27 @@ int main() {
   while(true)
   {
     dtrain.accelerationValue = Controller1.Axis3.position();
-    // leftMotorA.setVelocity(accelerationValue,percent);
-    // rightMotorA.setVelocity(accelerationValue,percent);
+    
 
-    // leftMotorB.setVelocity(accelerationValue,percent);
-    // rightMotorB.setVelocity(accelerationValue,percent);
     //assigns axis3 position to int variable and sets that as the motor velocity
   
    if(dtrain.accelerationValue != 0)
   {
-    leftMotorA.spin(forward);
-    rightMotorA.spin(forward);
+   
 
-    leftMotorB.spin(forward);
-    rightMotorB.spin(forward);
+   // dtrain.Drive(accelerationValue, direction) do this <----
+
+   
+
+
+
 
     //do direction and shit here for thr dtrain move func
   }
   //if the controller axis isnt centered then rotate
-  else {
-    leftMotorA.stop();
-    rightMotorA.stop();
-
-    leftMotorB.stop();
-    rightMotorB.stop();
-    
+  else 
+  {
+    dtrain.Stop();
   }
  
  
