@@ -28,7 +28,7 @@ brain Brain;
 
 // Robot configuration code.
 controller Controller1 = controller(primary);
-motor leftMotorA = motor(PORT2, ratio18_1, false);
+motor leftMotorA = motor(PORT1, ratio18_1, false);
 motor leftMotorB = motor(PORT3, ratio18_1, false);
 motor_group LeftDriveSmart = motor_group(leftMotorA, leftMotorB);
 motor rightMotorA = motor(PORT4, ratio18_1, true);
@@ -137,6 +137,8 @@ class Dtrain
         rightMotorA.setVelocity(turnValue,percent);
         rightMotorB.setVelocity(turnValue,percent);
 
+        rightMotorA.spin(forward);
+        rightMotorB.spin(forward);
       }
 
       if(turnValue <= -1)
@@ -144,6 +146,9 @@ class Dtrain
         //left turn
         leftMotorA.setVelocity(turnValue,percent);
         leftMotorB.setVelocity(turnValue,percent);
+
+        leftMotorA.spin(forward);
+        leftMotorB.spin(forward);
       }
     }
 
@@ -166,11 +171,14 @@ int main() {
   // Begin project code
 
   Dtrain dtrain(100);
+  RemoteControlCodeEnabled = false;
 
   while(true)
   {
     dtrain.accelerationValue = Controller1.Axis3.position();
     dtrain.turnValue = Controller1.Axis4.position();
+
+      
     //assigns controller axis to dtrain values
 
   
@@ -186,7 +194,12 @@ int main() {
   }
   //if controller 4 axis isnt centered then rotate
 
-  else 
+  // else 
+  // {
+  //   dtrain.Stop();
+  // }
+
+  if(dtrain.turnValue == 0 && dtrain.accelerationValue == 0)
   {
     dtrain.Stop();
   }
