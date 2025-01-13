@@ -137,6 +137,11 @@ class Dtrain
      leftMotorB.stop();
      rightMotorB.stop();
    }
+
+   void ToggleIntake()
+   {
+     //toggles intake 
+   }
   
     void Drive()
    {
@@ -329,6 +334,11 @@ int main() {
  if(dtrain.turnValue == 0 && dtrain.accelerationValue == 0)
  {
    dtrain.Stop();
+ }
+
+ if(Controller1.ButtonR2.pressing())
+ {
+   dtrain.ToggleIntake();
  }
    wait(20,msec);
   //small delay
