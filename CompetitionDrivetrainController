@@ -31,8 +31,8 @@ controller Controller1 = controller(primary);
 motor leftMotorA = motor(PORT1, ratio18_1, false);
 motor leftMotorB = motor(PORT3, ratio18_1, false);
 motor_group LeftDriveSmart = motor_group(leftMotorA, leftMotorB);
-motor rightMotorA = motor(PORT4, ratio18_1, true);
-motor rightMotorB = motor(PORT5, ratio18_1, true);
+motor rightMotorA = motor(PORT2, ratio18_1, true);
+motor rightMotorB = motor(PORT4, ratio18_1, true);
 motor_group RightDriveSmart = motor_group(rightMotorA, rightMotorB);
 drivetrain Drivetrain = drivetrain(LeftDriveSmart, RightDriveSmart, 319.19, 295, 40, mm, 1);
 
@@ -98,7 +98,8 @@ class Dtrain
  //maybe in future add a button cycled variable that changes the drivetrain type
  //ex: one is arcade, two is tank, three is custom, etc
   public:
-   int accelerationValue;
+   int accelerationValueLeft;
+   int accelerationValueRight;
    int turnValue;
    int maxTorque;
 
@@ -123,29 +124,36 @@ class Dtrain
    {
      double pos1 = 0;
      double pos2 = 46.64;
-     double pos3 =  ..
+     double pos3;
    }
     void Drive()
    {
+      if(Controller1.ButtonL2.pressing())
+      {
+        leftMotorA.setVelocity(accelerationValueLeft,percent);
+        leftMotorB.setVelocity(accelerationValueLeft,percent);
 
+        rightMotorA.setVelocity(accelerationValueRight,percent);
+        rightMotorB.setVelocity(accelerationValueRight,percent);
+      }
 
 
 
      if(Controller1.ButtonL1.pressing())
      {
-       leftMotorA.setVelocity(accelerationValue,percent);
-       rightMotorA.setVelocity(accelerationValue,percent);
+       leftMotorA.setVelocity(accelerationValueLeft,percent);
+       rightMotorA.setVelocity(accelerationValueLeft,percent);
 
 
-       leftMotorB.setVelocity(accelerationValue,percent);
-       rightMotorB.setVelocity(accelerationValue,percent);
+       leftMotorB.setVelocity(accelerationValueLeft,percent);
+       rightMotorB.setVelocity(accelerationValueLeft,percent);
 
 
 
 
-       if(accelerationValue >= 1)
+       if(accelerationValueLeft >= 1)
        {
-         accelerationValue = accelerationValue + 50;
+         accelerationValueLeft = accelerationValueLeft + 50;
          //started working on deadzone controller 
          //if positive add 50 if negative -50 for deadzone controller, thats all
        }
@@ -154,17 +162,17 @@ class Dtrain
 
 
      else
-     {
-       leftMotorA.setVelocity(accelerationValue,percent);
-       rightMotorA.setVelocity(accelerationValue,percent);
+    {
+       leftMotorA.setVelocity(accelerationValueLeft,percent);
+       rightMotorA.setVelocity(accelerationValueLeft,percent);
 
 
-       leftMotorB.setVelocity(accelerationValue,percent);
-       rightMotorB.setVelocity(accelerationValue,percent);
+       leftMotorB.setVelocity(accelerationValueLeft,percent);
+       rightMotorB.setVelocity(accelerationValueLeft,percent);
        //set drivetrain motor velocity to the position of axis 3
        //full variable speed, good for precision
 
-
+    //this is interfering with tank
       
      }
 
@@ -203,8 +211,8 @@ class Dtrain
          rightMotorB.spin(forward);
 
 
-         leftMotorA.spin(forward);
-         leftMotorB.spin(forward);
+         leftMotorA.spin(reverse);
+         leftMotorB.spin(reverse);
        }
        else
        {
@@ -239,8 +247,8 @@ class Dtrain
          leftMotorB.spin(forward);
 
 
-         rightMotorA.spin(forward);
-         rightMotorB.spin(forward);
+         rightMotorA.spin(reverse);
+         rightMotorB.spin(reverse);
        }
       else
       {
@@ -285,7 +293,8 @@ int main() {
 
  while(true)
  {
-   dtrain.accelerationValue = Controller1.Axis3.position();
+   dtrain.accelerationValueLeft = Controller1.Axis3.position();
+   dtrain.accelerationValueRight = Controller1.Axis2.position();
    dtrain.turnValue = Controller1.Axis4.position();
 
 
@@ -293,7 +302,7 @@ int main() {
    //assigns controller axis to dtrain values
 
 
-   if(dtrain.accelerationValue != 0)
+   if(dtrain.accelerationValueLeft != 0 || dtrain.accelerationValueRight != 0)
  {
   dtrain.Drive();
  }
@@ -313,7 +322,7 @@ int main() {
  // }
 
 
- if(dtrain.turnValue == 0 && dtrain.accelerationValue == 0)
+ if(dtrain.turnValue == 0 && dtrain.accelerationValueLeft == 0 && dtrain.accelerationValueRight == 0)
  {
    dtrain.Stop();
  }
@@ -322,6 +331,10 @@ int main() {
  {
    dtrain.ToggleIntake();
  }
+
+ Brain.Screen.print(" Right %d", dtrain.accelerationValueRight);
+ Brain.Screen.newLine();
+ Brain.Screen.print(" Left %d", dtrain.accelerationValueLeft);
    wait(20,msec);
   //small delay
 }
