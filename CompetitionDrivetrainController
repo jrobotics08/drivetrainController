@@ -90,7 +90,12 @@ bool RemoteControlCodeEnabled = true;
  // Allows for easier use of the VEX Library
 using namespace vex;
 
-
+enum class DRIVETRAIN_STATE
+   {
+    ARCADE = 0,
+    TANK,
+    SPECIALIZED
+   };
 
 
 class Dtrain
@@ -102,17 +107,32 @@ class Dtrain
    int accelerationValueRight;
    int turnValue;
    int maxTorque;
+   int toggleControl = 0;
+   bool deadzoneMode = false;
+   enum DRIVETRAIN_STATE drivetrainState = DRIVETRAIN_STATE::ARCADE;
+
 
 
  public:
    void Stop()
    {
      leftMotorA.stop();
-     rightMotorA.stop();
-
-
      leftMotorB.stop();
+
+
+     rightMotorA.stop();
      rightMotorB.stop();
+   }
+
+   void ToggleMode()
+   {
+      toggleControl ++;
+      drivetrainState = toggleControl;
+      
+      if(toggleControl > 2 || toggleControl < 0)
+      {
+        toggleControl = 0;
+      }
    }
 
    void ToggleIntake()
@@ -136,9 +156,11 @@ class Dtrain
         rightMotorA.setVelocity(accelerationValueRight,percent);
         rightMotorB.setVelocity(accelerationValueRight,percent);
       }
+      //^Tank controls
 
-
-
+    //Start Deadzone mode
+    if(deadzoneMode)
+    {
      if(Controller1.ButtonL1.pressing())
      {
        leftMotorA.setVelocity(accelerationValueLeft,percent);
@@ -158,7 +180,9 @@ class Dtrain
          //if positive add 50 if negative -50 for deadzone controller, thats all
        }
      }
+    }
      //same thing as else statement below but with a deadzone for faster neutral movement
+     //End deadzone mode
 
 
      else
@@ -178,13 +202,13 @@ class Dtrain
 
 
      leftMotorA.spin(forward);
-     rightMotorA.spin(forward);
+     leftMotorB.spin(forward);
 
 
 
 
-       leftMotorB.spin(forward);
-       rightMotorB.spin(forward);
+    rightMotorA.spin(forward);
+    rightMotorB.spin(forward);
        //drive drivetrain motors
       
       
@@ -266,17 +290,21 @@ class Dtrain
    }
 
 
+
+
    Dtrain(int maxTorqueCon)
    {
      maxTorque = maxTorqueCon;
 
 
      leftMotorA.setMaxTorque(maxTorque,percent);
-     rightMotorA.setMaxTorque(maxTorque,percent);
-    
      leftMotorB.setMaxTorque(maxTorque,percent);
+    
+     rightMotorA.setMaxTorque(maxTorque,percent);
      rightMotorB.setMaxTorque(maxTorque,percent);
    }
+
+   
    //Dtrain constructor initializes stuff for the drivetrain
 };
 
@@ -295,11 +323,9 @@ int main() {
  {
    dtrain.accelerationValueLeft = Controller1.Axis3.position();
    dtrain.accelerationValueRight = Controller1.Axis2.position();
-   dtrain.turnValue = Controller1.Axis4.position();
-
-
-    
+   dtrain.turnValue = Controller1.Axis1.position();
    //assigns controller axis to dtrain values
+  
 
 
    if(dtrain.accelerationValueLeft != 0 || dtrain.accelerationValueRight != 0)
@@ -331,6 +357,9 @@ int main() {
  {
    dtrain.ToggleIntake();
  }
+
+ Controller1.ButtonA.pressed(ToggleMode);
+ //Allows driver to cycle between Drivetrain control types
 
  Brain.Screen.print(" Right %d", dtrain.accelerationValueRight);
  Brain.Screen.newLine();
