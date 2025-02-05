@@ -90,6 +90,8 @@ bool RemoteControlCodeEnabled = true;
  // Allows for easier use of the VEX Library
 using namespace vex;
 
+
+
 enum class DRIVETRAIN_STATE
    {
     ARCADE = 0,
@@ -107,7 +109,7 @@ enum class DRIVETRAIN_STATE
    int accelerationValueRight;
    int turnValue;
    int maxTorque;
-   int toggleControl = 0;
+   int stateInt = 0;
    bool deadzoneMode = false;
    enum DRIVETRAIN_STATE drivetrainState = DRIVETRAIN_STATE::ARCADE;
 
@@ -123,37 +125,21 @@ enum class DRIVETRAIN_STATE
      rightMotorA.stop();
      rightMotorB.stop();
    }
-   void CheckForPress()
+  
+   void ButtonPressA()
    {
-     Controller1.ButtonA.pressed(ToggleMode);
+     //levi
+     drivetrainState = DRIVETRAIN_STATE::SPECIALIZED;
    }
-   void ToggleMode()
+   void ButtonPressX()
    {
-      toggleControl ++;
-      
-      switch(toggleControl)
-      {
-        case 0:
-        drivetrainState = DRIVETRAIN_STATE::ARCADE;
-        break;
-
-        case 1:
-        drivetrainState = DRIVETRAIN_STATE::TANK;
-        break;
-
-        case 2:
-        drivetrainState = DRIVETRAIN_STATE::SPECIALIZED;
-        break;
-
-        default:
-        //error
-        break;
-      }
-      
-      if(toggleControl > 2 || toggleControl < 0)
-      {
-        toggleControl = 0;
-      }
+     //tank
+     drivetrainState = DRIVETRAIN_STATE::TANK;
+   }
+   void ButtonPressY()
+   {
+     //arcade
+     drivetrainState = DRIVETRAIN_STATE::ARCADE;
    }
 
    void ToggleIntake()
@@ -329,9 +315,17 @@ enum class DRIVETRAIN_STATE
    //Dtrain constructor initializes stuff for the drivetrain
 };
 
+Dtrain* dtrainPtr;
+
+void pressTest()
+{
+  dtrainPtr->ButtonPressA();
+}
+
 
 int main() {
 
+  
 
  // Initializing Robot Configuration. DO NOT REMOVE!
  vexcodeInit();
@@ -340,7 +334,8 @@ int main() {
 
  Dtrain dtrain(100);
  RemoteControlCodeEnabled = false;
-
+dtrainPtr = &dtrain;
+ 
 
  while(true)
  {
@@ -381,9 +376,14 @@ int main() {
    dtrain.ToggleIntake();
  }
 
- 
- dtrain.CheckForPress();
 
+ 
+// Controller1.ButtonA.pressed(dtrain.ButtonPressA);
+// Controller1.ButtonY.pressed(dtrain.ButtonPressY);
+
+ Controller1.ButtonA.pressed(pressTest);
+
+// Controller1.ButtonX.pressed(dtrain.ButtonPressX);
  
  //Allows driver to cycle between Drivetrain control types
 
