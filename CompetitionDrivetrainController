@@ -84,7 +84,7 @@ bool RemoteControlCodeEnabled = true;
 /*                                                                            */
 /*----------------------------------------------------------------------------*/
 
-
+       
 // Include the V5 Library
 #include "vex.h"
  // Allows for easier use of the VEX Library
@@ -98,7 +98,7 @@ enum class DRIVETRAIN_STATE
    };
 
 
-class Dtrain
+ class Dtrain
 {
  //maybe in future add a button cycled variable that changes the drivetrain type
  //ex: one is arcade, two is tank, three is custom, etc
@@ -123,11 +123,32 @@ class Dtrain
      rightMotorA.stop();
      rightMotorB.stop();
    }
-
+   void CheckForPress()
+   {
+     Controller1.ButtonA.pressed(ToggleMode);
+   }
    void ToggleMode()
    {
       toggleControl ++;
-      drivetrainState = toggleControl;
+      
+      switch(toggleControl)
+      {
+        case 0:
+        drivetrainState = DRIVETRAIN_STATE::ARCADE;
+        break;
+
+        case 1:
+        drivetrainState = DRIVETRAIN_STATE::TANK;
+        break;
+
+        case 2:
+        drivetrainState = DRIVETRAIN_STATE::SPECIALIZED;
+        break;
+
+        default:
+        //error
+        break;
+      }
       
       if(toggleControl > 2 || toggleControl < 0)
       {
@@ -310,6 +331,8 @@ class Dtrain
 
 
 int main() {
+
+
  // Initializing Robot Configuration. DO NOT REMOVE!
  vexcodeInit();
  // Begin project code
@@ -358,7 +381,10 @@ int main() {
    dtrain.ToggleIntake();
  }
 
- Controller1.ButtonA.pressed(ToggleMode);
+ 
+ dtrain.CheckForPress();
+
+ 
  //Allows driver to cycle between Drivetrain control types
 
  Brain.Screen.print(" Right %d", dtrain.accelerationValueRight);
@@ -378,3 +404,5 @@ int main() {
 
 
 }
+
+//class
