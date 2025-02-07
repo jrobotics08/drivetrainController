@@ -94,7 +94,7 @@ using namespace vex;
 
 enum class DRIVETRAIN_STATE
    {
-    ARCADE = 0,
+    ARCADE = 1,
     TANK,
     SPECIALIZED
    };
@@ -107,7 +107,8 @@ enum class DRIVETRAIN_STATE
   public:
    int accelerationValueLeft;
    int accelerationValueRight;
-   int turnValue;
+   int specializedTurnValue;
+   int arcadeTurnValue;
    int maxTorque;
    int stateInt = 0;
    bool deadzoneMode = false;
@@ -155,58 +156,42 @@ enum class DRIVETRAIN_STATE
    }
     void Drive()
    {
-      if(Controller1.ButtonL2.pressing())
-      {
-        leftMotorA.setVelocity(accelerationValueLeft,percent);
-        leftMotorB.setVelocity(accelerationValueLeft,percent);
-
-        rightMotorA.setVelocity(accelerationValueRight,percent);
-        rightMotorB.setVelocity(accelerationValueRight,percent);
-      }
-      //^Tank controls
-
-    //Start Deadzone mode
-    if(deadzoneMode)
+     
+    switch(drivetrainState)
     {
-     if(Controller1.ButtonL1.pressing())
-     {
-       leftMotorA.setVelocity(accelerationValueLeft,percent);
-       rightMotorA.setVelocity(accelerationValueLeft,percent);
+      case DRIVETRAIN_STATE::ARCADE:
+      leftMotorA.setVelocity(accelerationValueLeft,percent);
+      leftMotorB.setVelocity(accelerationValueLeft,percent);
 
+      rightMotorA.setVelocity(accelerationValueLeft,percent);
+      rightMotorB.setVelocity(accelerationValueLeft,percent);
+      //logic driving for arcade
+      break;
 
-       leftMotorB.setVelocity(accelerationValueLeft,percent);
-       rightMotorB.setVelocity(accelerationValueLeft,percent);
+      case DRIVETRAIN_STATE::TANK:
+      leftMotorA.setVelocity(accelerationValueLeft,percent);
+      leftMotorB.setVelocity(accelerationValueLeft,percent);
 
+      rightMotorA.setVelocity(accelerationValueRight,percent);
+      rightMotorB.setVelocity(accelerationValueRight,percent);
+      //logic for tank
+      break;
 
+      case DRIVETRAIN_STATE::SPECIALIZED:
+      leftMotorA.setVelocity(accelerationValueLeft,percent);
+      leftMotorB.setVelocity(accelerationValueLeft,percent);
 
+      rightMotorA.setVelocity(accelerationValueLeft,percent);
+      rightMotorB.setVelocity(accelerationValueLeft,percent);
+      //logic for specialized
+      break;
 
-       if(accelerationValueLeft >= 1)
-       {
-         accelerationValueLeft = accelerationValueLeft + 50;
-         //started working on deadzone controller 
-         //if positive add 50 if negative -50 for deadzone controller, thats all
-       }
-     }
+      default:
+      //train does not drive as theres no input
+      break;
     }
-     //same thing as else statement below but with a deadzone for faster neutral movement
-     //End deadzone mode
 
-
-     else
-    {
-       leftMotorA.setVelocity(accelerationValueLeft,percent);
-       rightMotorA.setVelocity(accelerationValueLeft,percent);
-
-
-       leftMotorB.setVelocity(accelerationValueLeft,percent);
-       rightMotorB.setVelocity(accelerationValueLeft,percent);
-       //set drivetrain motor velocity to the position of axis 3
-       //full variable speed, good for precision
-
-    //this is interfering with tank
-      
-     }
-
+     
 
      leftMotorA.spin(forward);
      leftMotorB.spin(forward);
@@ -224,18 +209,17 @@ enum class DRIVETRAIN_STATE
 
    void Turn()
    {
-     if(turnValue >= 1)
+
+     if(drivetrainState == DRIVETRAIN_STATE::SPECIALIZED)
      {
+     if(specializedTurnValue >= 1)
+     {
+         rightMotorA.setVelocity(specializedTurnValue,percent);
+         rightMotorB.setVelocity(specializedTurnValue,percent);
 
 
-       if(Controller1.ButtonR1.pressing())
-       {
-         rightMotorA.setVelocity(turnValue,percent);
-         rightMotorB.setVelocity(turnValue,percent);
-
-
-         leftMotorA.setVelocity(turnValue,percent);
-         leftMotorB.setVelocity(turnValue,percent);
+         leftMotorA.setVelocity(specializedTurnValue,percent);
+         leftMotorB.setVelocity(specializedTurnValue,percent);
 
 
          rightMotorA.spin(forward);
@@ -244,34 +228,18 @@ enum class DRIVETRAIN_STATE
 
          leftMotorA.spin(reverse);
          leftMotorB.spin(reverse);
-       }
-       else
-       {
-       //right turn
-       rightMotorA.setVelocity(turnValue,percent);
-       rightMotorB.setVelocity(turnValue,percent);
-
-
-       rightMotorA.spin(forward);
-       rightMotorB.spin(forward);
-       }
-
 
      }
+      //right zero-turn
 
-
-     if(turnValue <= -1)
+     if(specializedTurnValue <= -1)
      {
+         leftMotorA.setVelocity(specializedTurnValue,percent);
+         leftMotorB.setVelocity(specializedTurnValue,percent);
 
 
-       if(Controller1.ButtonR1.pressing())
-       {
-         leftMotorA.setVelocity(turnValue,percent);
-         leftMotorB.setVelocity(turnValue,percent);
-
-
-         rightMotorA.setVelocity(turnValue,percent);
-         rightMotorB.setVelocity(turnValue,percent);
+         rightMotorA.setVelocity(specializedTurnValue,percent);
+         rightMotorB.setVelocity(specializedTurnValue,percent);
 
 
          leftMotorA.spin(forward);
@@ -280,20 +248,57 @@ enum class DRIVETRAIN_STATE
 
          rightMotorA.spin(reverse);
          rightMotorB.spin(reverse);
-       }
-      else
-      {
-       //left turn
-       leftMotorA.setVelocity(turnValue,percent);
-       leftMotorB.setVelocity(turnValue,percent);
-
-
-       leftMotorA.spin(forward);
-       leftMotorB.spin(forward);
-      }
-
+     }
+     //left zero-turn
 
      }
+
+    if(drivetrainState == DRIVETRAIN_STATE::ARCADE)
+    {
+       if(arcadeTurnValue >= 1)
+     {
+         rightMotorA.setVelocity(arcadeTurnValue,percent);
+         rightMotorB.setVelocity(arcadeTurnValue,percent);
+
+
+         leftMotorA.setVelocity(arcadeTurnValue,percent);
+         leftMotorB.setVelocity(arcadeTurnValue,percent);
+
+
+         rightMotorA.spin(forward);
+         rightMotorB.spin(forward);
+
+
+         leftMotorA.spin(reverse);
+         leftMotorB.spin(reverse);
+
+     }
+      //right zero-turn
+
+     if(arcadeTurnValue <= -1)
+     {
+         leftMotorA.setVelocity(arcadeTurnValue,percent);
+         leftMotorB.setVelocity(arcadeTurnValue,percent);
+
+
+         rightMotorA.setVelocity(arcadeTurnValue,percent);
+         rightMotorB.setVelocity(arcadeTurnValue,percent);
+
+
+         leftMotorA.spin(forward);
+         leftMotorB.spin(forward);
+
+
+         rightMotorA.spin(reverse);
+         rightMotorB.spin(reverse);
+     }
+     //left zero-turn
+
+     }
+   }
+     
+        
+     
    }
 
 
@@ -317,11 +322,20 @@ enum class DRIVETRAIN_STATE
 
 Dtrain* dtrainPtr;
 
-void pressTest()
+void callbackA()
 {
-  dtrainPtr->ButtonPressA();
+  dtrainPtr -> ButtonPressA();
 }
 
+void callbackY()
+{
+  dtrainPtr -> ButtonPressY();
+}
+
+void callbackX()
+{
+  dtrainPtr -> ButtonPressX();
+}
 
 int main() {
 
@@ -341,7 +355,8 @@ dtrainPtr = &dtrain;
  {
    dtrain.accelerationValueLeft = Controller1.Axis3.position();
    dtrain.accelerationValueRight = Controller1.Axis2.position();
-   dtrain.turnValue = Controller1.Axis1.position();
+   dtrain.specializedTurnValue = Controller1.Axis4.position();
+   dtrain.arcadeTurnValue = Controller1.Axis1.position();
    //assigns controller axis to dtrain values
   
 
@@ -353,7 +368,7 @@ dtrainPtr = &dtrain;
  //if controller axis 3 isnt centered then drive
 
 
- if(dtrain.turnValue != 0)
+ if(dtrain.specializedTurnValue != 0 || dtrain.arcadeTurnValue != 0)
  {
    dtrain.Turn();
  }
@@ -366,7 +381,7 @@ dtrainPtr = &dtrain;
  // }
 
 
- if(dtrain.turnValue == 0 && dtrain.accelerationValueLeft == 0 && dtrain.accelerationValueRight == 0)
+ if(dtrain.specializedTurnValue == 0 && dtrain.arcadeTurnValue == 0 && dtrain.accelerationValueLeft == 0 && dtrain.accelerationValueRight == 0)
  {
    dtrain.Stop();
  }
@@ -381,7 +396,9 @@ dtrainPtr = &dtrain;
 // Controller1.ButtonA.pressed(dtrain.ButtonPressA);
 // Controller1.ButtonY.pressed(dtrain.ButtonPressY);
 
- Controller1.ButtonA.pressed(pressTest);
+ Controller1.ButtonA.pressed(callbackA);
+ Controller1.ButtonX.pressed(callbackX);
+ Controller1.ButtonY.pressed(callbackY);
 
 // Controller1.ButtonX.pressed(dtrain.ButtonPressX);
  
