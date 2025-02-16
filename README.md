@@ -1,6 +1,6 @@
 This is our Vex V5 robots main code.
 
-As of 2/15/25 the most updated version is "CompetitionDrivetrainController.cpp"
+As of 2/16/25 the most updated version is "CompetitionDrivetrainController.cpp"
 
 This next section is for helping Levi:
 
