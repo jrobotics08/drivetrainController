@@ -170,6 +170,8 @@ int main() {
     Controller1.ButtonA.pressed(ButtonPressA);
     Controller1.ButtonX.pressed(ButtonPressX);
     Controller1.ButtonY.pressed(ButtonPressY);
+    Brain.Screen.print("8114b");
+    Brain.Screen.clear();
     wait(20,msec);
   }
 
