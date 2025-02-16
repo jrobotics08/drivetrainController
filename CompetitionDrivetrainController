@@ -149,19 +149,10 @@ enum class DRIVETRAIN_STATE
    void ButtonPressB()
    {
      //toggle goal piston
-     if(pistonActive)
-     {
-       //turn off piston shit
-       SolenoidToggle.set(false);
-       pistonActive = false;
-     }
+    
 
-     if(pistonActive == false)
-     {
-       //turn on piston shit
-       SolenoidToggle.set(true);
-       pistonActive = true;
-     }
+     pistonActive = !pistonActive;
+     SolenoidToggle.set(pistonActive);
 
    }
    void ButtonPressReset()
@@ -424,7 +415,7 @@ int main() {
 dtrainPtr = &dtrain;
 
 dtrain.ToggleAuto(1);
-wait(30,seconds);
+wait(15,seconds);
 
  
 
