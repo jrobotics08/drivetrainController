@@ -203,6 +203,7 @@ enum class DRIVETRAIN_STATE
      }
 
      IntakeMotor.setVelocity(intakeValue,percent);
+     IntakeMotor.spin(forward);
    }
 
    void ToggleAuto(int pos)
@@ -223,7 +224,7 @@ enum class DRIVETRAIN_STATE
       case DRIVETRAIN_STATE::ARCADE:
       leftMotorA.setVelocity(accelerationValueLeft,percent);
       leftMotorB.setVelocity(accelerationValueLeft,percent);
-
+  
       rightMotorA.setVelocity(accelerationValueLeft,percent);
       rightMotorB.setVelocity(accelerationValueLeft,percent);
       //logic driving for arcade
