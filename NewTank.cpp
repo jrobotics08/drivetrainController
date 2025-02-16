@@ -96,10 +96,13 @@ int accelerationValueLeft;
 int intakeValue;
 bool pistonActive = false;
 
-void ButtonPressB()
+void ButtonPressX()
 {
-pistonActive = !pistonActive;
-Solenoid.set(pistonActive);
+Solenoid.set(false);
+}
+void ButtonPressY()
+{
+Solenoid.set(true);
 }
 void ButtonPressA()
 {
@@ -165,7 +168,8 @@ int main() {
     
 
     Controller1.ButtonA.pressed(ButtonPressA);
-    Controller1.ButtonB.pressed(ButtonPressB);
+    Controller1.ButtonX.pressed(ButtonPressX);
+    Controller1.ButtonY.pressed(ButtonPressY);
     wait(20,msec);
   }
 
