@@ -27,7 +27,6 @@ brain Brain;
 
 
 // Robot configuration code.
-controller Controller1 = controller(primary);
 motor leftMotorA = motor(PORT1, ratio18_1, false);
 motor leftMotorB = motor(PORT3, ratio18_1, false);
 motor_group LeftDriveSmart = motor_group(leftMotorA, leftMotorB);
@@ -36,6 +35,10 @@ motor rightMotorB = motor(PORT4, ratio18_1, true);
 motor_group RightDriveSmart = motor_group(rightMotorA, rightMotorB);
 drivetrain Drivetrain = drivetrain(LeftDriveSmart, RightDriveSmart, 319.19, 295, 40, mm, 1);
 
+controller Controller1 = controller(primary);
+motor IntakeMotor = motor(PORT5, ratio18_1, false);
+
+digital_out SolenoidToggle = digital_out(Brain.ThreeWirePort.H);
 
 
 // generating and setting random seed
@@ -111,7 +114,8 @@ enum class DRIVETRAIN_STATE
    int arcadeTurnValue;
    int maxTorque;
    int stateInt = 0;
-   bool deadzoneMode = false;
+   int intakeValue = 0;
+   bool pistonActive = false;
    enum DRIVETRAIN_STATE drivetrainState = DRIVETRAIN_STATE::ARCADE;
 
 
@@ -142,10 +146,63 @@ enum class DRIVETRAIN_STATE
      //arcade
      drivetrainState = DRIVETRAIN_STATE::ARCADE;
    }
-
-   void ToggleIntake()
+   void ButtonPressB()
    {
-     //toggles intake 
+     //toggle goal piston
+     if(pistonActive)
+     {
+       //turn off piston shit
+       SolenoidToggle.set(false);
+       pistonActive = false;
+     }
+
+     if(pistonActive == false)
+     {
+       //turn on piston shit
+       SolenoidToggle.set(true);
+       pistonActive = true;
+     }
+
+   }
+   void ButtonPressReset()
+   {
+     //reset intake motor
+     IntakeMotor.stop();
+     intakeValue = 0;
+   }
+
+   void ToggleIntake(int dir)
+   {
+     //toggles intake
+     switch(dir)
+     {
+       case 1:
+       //forward
+       if(intakeValue <= 95)
+       {
+         intakeValue = intakeValue + 5;
+       }
+       break;
+
+       case 2:
+       //reverse
+       if(intakeValue >= -95)
+       {
+         intakeValue = intakeValue - 5;
+       }
+       break;
+
+       default:
+       //wtf??? shouldnt exist or happen
+       break;
+     } 
+
+     if(intakeValue > 100 || intakeValue < -100)
+     {
+       intakeValue = 0;
+     }
+
+     IntakeMotor.setVelocity(intakeValue,percent);
    }
 
    void ToggleAuto(int pos)
@@ -153,6 +210,10 @@ enum class DRIVETRAIN_STATE
      double pos1 = 0;
      double pos2 = 46.64;
      double pos3;
+
+    //future me use the pos int to determine whether were on right or left side
+    Drivetrain.driveFor(forward, 70,inches);
+
    }
     void Drive()
    {
@@ -299,7 +360,7 @@ enum class DRIVETRAIN_STATE
      
         
      
-   }
+   
 
 
 
@@ -314,6 +375,8 @@ enum class DRIVETRAIN_STATE
     
      rightMotorA.setMaxTorque(maxTorque,percent);
      rightMotorB.setMaxTorque(maxTorque,percent);
+
+     IntakeMotor.setMaxTorque(maxTorque,percent);
    }
 
    
@@ -337,6 +400,15 @@ void callbackX()
   dtrainPtr -> ButtonPressX();
 }
 
+void callbackB()
+{
+  dtrainPtr -> ButtonPressB();
+}
+void callbackReset()
+{
+  dtrainPtr -> ButtonPressReset();
+}
+
 int main() {
 
   
@@ -349,6 +421,10 @@ int main() {
  Dtrain dtrain(100);
  RemoteControlCodeEnabled = false;
 dtrainPtr = &dtrain;
+
+dtrain.ToggleAuto(1);
+wait(30,seconds);
+
  
 
  while(true)
@@ -386,27 +462,27 @@ dtrainPtr = &dtrain;
    dtrain.Stop();
  }
 
- if(Controller1.ButtonR2.pressing())
- {
-   dtrain.ToggleIntake();
- }
+if(Controller1.ButtonUp.pressing())
+{
+dtrain.ToggleIntake(1);
+}
 
-
- 
-// Controller1.ButtonA.pressed(dtrain.ButtonPressA);
-// Controller1.ButtonY.pressed(dtrain.ButtonPressY);
+if(Controller1.ButtonDown.pressing())
+{
+dtrain.ToggleIntake(2);
+}
+//1 = forwards
+//2 = backwards
+Controller1.ButtonRight.pressed(callbackReset);
+Controller1.ButtonLeft.pressed(callbackReset);
+//resets the intake motor
 
  Controller1.ButtonA.pressed(callbackA);
  Controller1.ButtonX.pressed(callbackX);
  Controller1.ButtonY.pressed(callbackY);
-
-// Controller1.ButtonX.pressed(dtrain.ButtonPressX);
- 
  //Allows driver to cycle between Drivetrain control types
 
- Brain.Screen.print(" Right %d", dtrain.accelerationValueRight);
- Brain.Screen.newLine();
- Brain.Screen.print(" Left %d", dtrain.accelerationValueLeft);
+Controller1.ButtonB.pressed(callbackB);
    wait(20,msec);
   //small delay
 }
