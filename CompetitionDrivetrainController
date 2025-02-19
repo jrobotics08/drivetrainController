@@ -27,18 +27,18 @@ brain Brain;
 
 
 // Robot configuration code.
-motor leftMotorA = motor(PORT1, ratio18_1, false);
-motor leftMotorB = motor(PORT3, ratio18_1, false);
-motor_group LeftDriveSmart = motor_group(leftMotorA, leftMotorB);
-motor rightMotorA = motor(PORT2, ratio18_1, true);
-motor rightMotorB = motor(PORT4, ratio18_1, true);
-motor_group RightDriveSmart = motor_group(rightMotorA, rightMotorB);
-drivetrain Drivetrain = drivetrain(LeftDriveSmart, RightDriveSmart, 319.19, 295, 40, mm, 1);
+motor leftMotorA = motor(PORT1, ratio6_1, false);
+
+motor rightMotorA = motor(PORT2, ratio6_1, true);
+
+motor leftMotorB = motor(PORT3, ratio6_1, false);
+
+motor rightMotorB = motor(PORT4, ratio6_1, true);
+
+digital_out Solenoid = digital_out(Brain.ThreeWirePort.H);
+motor IntakeMotor = motor(PORT5, ratio6_1, false);
 
 controller Controller1 = controller(primary);
-motor IntakeMotor = motor(PORT5, ratio18_1, false);
-
-digital_out SolenoidToggle = digital_out(Brain.ThreeWirePort.H);
 
 
 // generating and setting random seed
@@ -77,417 +77,174 @@ bool RemoteControlCodeEnabled = true;
 
 #pragma endregion VEXcode Generated Robot Configuration
 
+// ----------------------------------------------------------------------------
+//                                                                            
+//    Project:                                               
+//    Author:
+//    Created:
+//    Configuration:        
+//                                                                            
+// ----------------------------------------------------------------------------
 
-/*----------------------------------------------------------------------------*/
-/*                                                                            */
-/*    Module:       drivetrainController.cpp                                                  */
-/*    Author:       Joey Riley(Berm robotics B team)                                                  */
-/*    Created:      a while ago                                                  */
-/*    Description:  Mecanum drivetrain controller for our competition bot                                               */
-/*                                                                            */
-/*----------------------------------------------------------------------------*/
-
-       
 // Include the V5 Library
 #include "vex.h"
- // Allows for easier use of the VEX Library
+
+// Allows for easier use of the VEX Library
 using namespace vex;
 
+int accelerationValueRight;
+int accelerationValueLeft;
+int intakeValue;
+bool pistonActive = false;
 
 
-enum class DRIVETRAIN_STATE
-   {
-    ARCADE = 1,
-    TANK,
-    SPECIALIZED
-   };
+
+// START V5 MACROS
+#define waitUntil(condition)                                                   \
+  do {                                                                         \
+    wait(5, msec);                                                             \
 
 
- class Dtrain
+#define repeat(iterations)                                                     \
+  for (int iterator = 0; iterator < iterations; iterator++)
+// END V5 MACROS
+
+
+// Robot configuration code.
+
+// generating and setting random seed
+  int systemTime = Brain.Timer.systemHighResolution();
+  double batteryCurrent = Brain.Battery.current();
+  double batteryVoltage = Brain.Battery.voltage(voltageUnits::mV);
+
+  // Combine these values into a single integer
+
+
+
+
+void ButtonPressL1()
 {
- //maybe in future add a button cycled variable that changes the drivetrain type
- //ex: one is arcade, two is tank, three is custom, etc
-  public:
-   int accelerationValueLeft;
-   int accelerationValueRight;
-   int specializedTurnValue;
-   int arcadeTurnValue;
-   int maxTorque;
-   int stateInt = 0;
-   int intakeValue = 0;
-   bool pistonActive = false;
-   enum DRIVETRAIN_STATE drivetrainState = DRIVETRAIN_STATE::ARCADE;
+Solenoid.set(false);
+}
+void ButtonPressR1()
+{
+Solenoid.set(true);
+}
+void ButtonPressA()
+{
+  intakeValue = 0;
+  IntakeMotor.stop();
+}
 
 
 
- public:
-   void Stop()
-   {
-     leftMotorA.stop();
-     leftMotorB.stop();
 
+// Begin project code
 
-     rightMotorA.stop();
-     rightMotorB.stop();
-   }
-  
-   void ButtonPressA()
-   {
-     //levi
-     drivetrainState = DRIVETRAIN_STATE::SPECIALIZED;
-   }
-   void ButtonPressX()
-   {
-     //tank
-     drivetrainState = DRIVETRAIN_STATE::TANK;
-   }
-   void ButtonPressY()
-   {
-     //arcade
-     drivetrainState = DRIVETRAIN_STATE::ARCADE;
-   }
-   void ButtonPressB()
-   {
-     //toggle goal piston
-    
+void preAutonomous(void) {
+  // actions to do when the program starts
+  Brain.Screen.clearScreen();
+  Brain.Screen.print("pre auton code");
+  wait(1, seconds);
+}
 
-     pistonActive = !pistonActive;
-     SolenoidToggle.set(pistonActive);
+void autonomous(void) {
+  Brain.Screen.clearScreen();
+  Brain.Screen.print("autonomous code");
+  // place automonous code here
+  leftMotorA.setMaxTorque(100,percent);
+  leftMotorB.setMaxTorque(100,percent);
+  rightMotorA.setMaxTorque(100,percent);
+  rightMotorB.setMaxTorque(100,percent);
+  leftMotorA.spin(forward);
+  leftMotorB.spin(forward);
+  rightMotorA.spin(forward);
+  rightMotorB.spin(forward);
+  wait(3000,msec);
+  leftMotorA.stop();
+  leftMotorB.stop();
+  rightMotorA.stop();
+  rightMotorB.stop();
+}
 
-   }
-   void ButtonPressReset()
-   {
-     //reset intake motor
-     IntakeMotor.stop();
-     intakeValue = 0;
-   }
+void userControl(void) {
+  Brain.Screen.clearScreen();
+  // place driver control in this while loop
+  while (true) {
+    wait(20, msec);
+    Brain.Screen.clearScreen();
+    Brain.Screen.print("%d", intakeValue);
 
-   void ToggleIntake(int dir)
-   {
-     //toggles intake
-     switch(dir)
-     {
-       case 1:
-       //forward
-       if(intakeValue <= 95)
-       {
-         intakeValue = intakeValue + 5;
-       }
-       break;
+    accelerationValueRight = Controller1.Axis2.position();
+    accelerationValueLeft = Controller1.Axis3.position();
 
-       case 2:
-       //reverse
-       if(intakeValue >= -95)
-       {
-         intakeValue = intakeValue - 5;
-       }
-       break;
-
-       default:
-       //wtf??? shouldnt exist or happen
-       break;
-     } 
-
-     if(intakeValue > 100 || intakeValue < -100)
-     {
-       intakeValue = 0;
-     }
-
-     IntakeMotor.setVelocity(intakeValue,percent);
-     IntakeMotor.spin(forward);
-   }
-
-   void ToggleAuto(int pos)
-   {
-     double pos1 = 0;
-     double pos2 = 46.64;
-     double pos3;
-
-    //future me use the pos int to determine whether were on right or left side
-    Drivetrain.driveFor(forward, 70,inches);
-
-   }
-    void Drive()
-   {
-     
-    switch(drivetrainState)
+    if(accelerationValueRight == 0 && accelerationValueLeft == 0)
     {
-      case DRIVETRAIN_STATE::ARCADE:
-      leftMotorA.setVelocity(accelerationValueLeft,percent);
-      leftMotorB.setVelocity(accelerationValueLeft,percent);
-  
-      rightMotorA.setVelocity(accelerationValueLeft,percent);
-      rightMotorB.setVelocity(accelerationValueLeft,percent);
-      //logic driving for arcade
-      break;
-
-      case DRIVETRAIN_STATE::TANK:
+      leftMotorA.stop();
+      leftMotorB.stop();
+      rightMotorA.stop();
+      rightMotorB.stop();
+    }
+    else
+    {
       leftMotorA.setVelocity(accelerationValueLeft,percent);
       leftMotorB.setVelocity(accelerationValueLeft,percent);
 
       rightMotorA.setVelocity(accelerationValueRight,percent);
       rightMotorB.setVelocity(accelerationValueRight,percent);
-      //logic for tank
-      break;
 
-      case DRIVETRAIN_STATE::SPECIALIZED:
-      leftMotorA.setVelocity(accelerationValueLeft,percent);
-      leftMotorB.setVelocity(accelerationValueLeft,percent);
+      leftMotorA.spin(forward);
+      leftMotorB.spin(forward);
 
-      rightMotorA.setVelocity(accelerationValueLeft,percent);
-      rightMotorB.setVelocity(accelerationValueLeft,percent);
-      //logic for specialized
-      break;
-
-      default:
-      //train does not drive as theres no input
-      break;
+      rightMotorA.spin(forward);
+      rightMotorB.spin(forward);
     }
 
-     
-
-     leftMotorA.spin(forward);
-     leftMotorB.spin(forward);
-
-
-
-
-    rightMotorA.spin(forward);
-    rightMotorB.spin(forward);
-       //drive drivetrain motors
-      
-      
-   }
-
-
-   void Turn()
-   {
-
-     if(drivetrainState == DRIVETRAIN_STATE::SPECIALIZED)
-     {
-     if(specializedTurnValue >= 1)
-     {
-         rightMotorA.setVelocity(specializedTurnValue,percent);
-         rightMotorB.setVelocity(specializedTurnValue,percent);
-
-
-         leftMotorA.setVelocity(specializedTurnValue,percent);
-         leftMotorB.setVelocity(specializedTurnValue,percent);
-
-
-         rightMotorA.spin(forward);
-         rightMotorB.spin(forward);
-
-
-         leftMotorA.spin(reverse);
-         leftMotorB.spin(reverse);
-
-     }
-      //right zero-turn
-
-     if(specializedTurnValue <= -1)
-     {
-         leftMotorA.setVelocity(specializedTurnValue,percent);
-         leftMotorB.setVelocity(specializedTurnValue,percent);
-
-
-         rightMotorA.setVelocity(specializedTurnValue,percent);
-         rightMotorB.setVelocity(specializedTurnValue,percent);
-
-
-         leftMotorA.spin(forward);
-         leftMotorB.spin(forward);
-
-
-         rightMotorA.spin(reverse);
-         rightMotorB.spin(reverse);
-     }
-     //left zero-turn
-
-     }
-
-    if(drivetrainState == DRIVETRAIN_STATE::ARCADE)
+    if(Controller1.ButtonUp.pressing())
     {
-       if(arcadeTurnValue >= 1)
-     {
-         rightMotorA.setVelocity(arcadeTurnValue,percent);
-         rightMotorB.setVelocity(arcadeTurnValue,percent);
+      if(intakeValue <= 55)
+      {
+        intakeValue = intakeValue + 5;
+      }
+      IntakeMotor.spin(forward);
+    }
 
+    if(Controller1.ButtonDown.pressing())
+    {
+      if(intakeValue >= -55)
+      {
+        intakeValue = intakeValue - 5;
+      }
 
-         leftMotorA.setVelocity(arcadeTurnValue,percent);
-         leftMotorB.setVelocity(arcadeTurnValue,percent);
+      IntakeMotor.spin(forward);
+    }
 
-
-         rightMotorA.spin(forward);
-         rightMotorB.spin(forward);
-
-
-         leftMotorA.spin(reverse);
-         leftMotorB.spin(reverse);
-
-     }
-      //right zero-turn
-
-     if(arcadeTurnValue <= -1)
-     {
-         leftMotorA.setVelocity(arcadeTurnValue,percent);
-         leftMotorB.setVelocity(arcadeTurnValue,percent);
-
-
-         rightMotorA.setVelocity(arcadeTurnValue,percent);
-         rightMotorB.setVelocity(arcadeTurnValue,percent);
-
-
-         leftMotorA.spin(forward);
-         leftMotorB.spin(forward);
-
-
-         rightMotorA.spin(reverse);
-         rightMotorB.spin(reverse);
-     }
-     //left zero-turn
-
-     }
-   }
-     
-        
-     
-   
-
-
-
-
-   Dtrain(int maxTorqueCon)
-   {
-     maxTorque = maxTorqueCon;
-
-
-     leftMotorA.setMaxTorque(maxTorque,percent);
-     leftMotorB.setMaxTorque(maxTorque,percent);
+    IntakeMotor.setVelocity(intakeValue,percent);
     
-     rightMotorA.setMaxTorque(maxTorque,percent);
-     rightMotorB.setMaxTorque(maxTorque,percent);
 
-     IntakeMotor.setMaxTorque(maxTorque,percent);
-   }
+    Controller1.ButtonA.pressed(ButtonPressA);
+    Controller1.ButtonL1.pressed(ButtonPressL1);
+    Controller1.ButtonR1.pressed(ButtonPressR1);
 
-   
-   //Dtrain constructor initializes stuff for the drivetrain
-};
-
-Dtrain* dtrainPtr;
-
-void callbackA()
-{
-  dtrainPtr -> ButtonPressA();
+  
 }
 
-void callbackY()
-{
-  dtrainPtr -> ButtonPressY();
-}
-
-void callbackX()
-{
-  dtrainPtr -> ButtonPressX();
-}
-
-void callbackB()
-{
-  dtrainPtr -> ButtonPressB();
-}
-void callbackReset()
-{
-  dtrainPtr -> ButtonPressReset();
-}
-
+  }
 int main() {
+  // Initializing Robot Configuration. DO NOT REMOVE!
+  vexcodeInit();
+  // create competition instance
+  competition Competition;
 
-  
+  // Set up callbacks for autonomous and driver control periods.
+  Competition.autonomous(autonomous);
+  Competition.drivercontrol(userControl);
 
- // Initializing Robot Configuration. DO NOT REMOVE!
- vexcodeInit();
- // Begin project code
+  // Run the pre-autonomous function.
+  preAutonomous();
 
-
- Dtrain dtrain(100);
- RemoteControlCodeEnabled = false;
-dtrainPtr = &dtrain;
-
-dtrain.ToggleAuto(1);
-wait(15,seconds);
-
- 
-
- while(true)
- {
-   dtrain.accelerationValueLeft = Controller1.Axis3.position();
-   dtrain.accelerationValueRight = Controller1.Axis2.position();
-   dtrain.specializedTurnValue = Controller1.Axis4.position();
-   dtrain.arcadeTurnValue = Controller1.Axis1.position();
-   //assigns controller axis to dtrain values
-  
-
-
-   if(dtrain.accelerationValueLeft != 0 || dtrain.accelerationValueRight != 0)
- {
-  dtrain.Drive();
- }
- //if controller axis 3 isnt centered then drive
-
-
- if(dtrain.specializedTurnValue != 0 || dtrain.arcadeTurnValue != 0)
- {
-   dtrain.Turn();
- }
- //if controller 4 axis isnt centered then rotate
-
-
- // else
- // {
- //   dtrain.Stop();
- // }
-
-
- if(dtrain.specializedTurnValue == 0 && dtrain.arcadeTurnValue == 0 && dtrain.accelerationValueLeft == 0 && dtrain.accelerationValueRight == 0)
- {
-   dtrain.Stop();
- }
-
-if(Controller1.ButtonUp.pressing())
-{
-dtrain.ToggleIntake(1);
+  // Prevent main from exiting with an infinite loop.
+  while (true) {
+    wait(100, msec);
+  }
 }
-
-if(Controller1.ButtonDown.pressing())
-{
-dtrain.ToggleIntake(2);
-}
-//1 = forwards
-//2 = backwards
-Controller1.ButtonRight.pressed(callbackReset);
-Controller1.ButtonLeft.pressed(callbackReset);
-//resets the intake motor
-
- Controller1.ButtonA.pressed(callbackA);
- Controller1.ButtonX.pressed(callbackX);
- Controller1.ButtonY.pressed(callbackY);
- //Allows driver to cycle between Drivetrain control types
-
-Controller1.ButtonB.pressed(callbackB);
-   wait(20,msec);
-  //small delay
-}
-
-
-
-
-
-
-
-
-
-
-}
-
-//class
