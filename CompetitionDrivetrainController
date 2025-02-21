@@ -79,8 +79,8 @@ bool RemoteControlCodeEnabled = true;
 
 // ----------------------------------------------------------------------------
 //                                                                            
-//    Project:                                               
-//    Author:
+//    Project: Competition Drivetrain Controller                                               
+//    Author: Bermudian Robotics B team, 8114B
 //    Created:
 //    Configuration:        
 //                                                                            
@@ -94,8 +94,10 @@ using namespace vex;
 
 int accelerationValueRight;
 int accelerationValueLeft;
+int arcadeTurnValue;
 int intakeValue;
 bool pistonActive = false;
+bool tankActive = true;
 
 
 
@@ -173,12 +175,13 @@ void userControl(void) {
   while (true) {
     wait(20, msec);
     Brain.Screen.clearScreen();
-    Brain.Screen.print("%d", intakeValue);
+    Brain.Screen.print("%s", "8114B");
 
     accelerationValueRight = Controller1.Axis2.position();
     accelerationValueLeft = Controller1.Axis3.position();
+    arcadeTurnValue = Controller1.Axis1.position();
 
-    if(accelerationValueRight == 0 && accelerationValueLeft == 0)
+    if(accelerationValueRight == 0 && accelerationValueLeft == 0 && arcadeTurnValue == 0)
     {
       leftMotorA.stop();
       leftMotorB.stop();
@@ -187,6 +190,8 @@ void userControl(void) {
     }
     else
     {
+      if(tankActive == true)
+      {
       leftMotorA.setVelocity(accelerationValueLeft,percent);
       leftMotorB.setVelocity(accelerationValueLeft,percent);
 
@@ -198,11 +203,60 @@ void userControl(void) {
 
       rightMotorA.spin(forward);
       rightMotorB.spin(forward);
+      }
+      if(tankActive == false)
+      {
+      leftMotorA.setVelocity(accelerationValueLeft,percent);
+      leftMotorB.setVelocity(accelerationValueLeft,percent);
+
+      rightMotorA.setVelocity(accelerationValueLeft,percent);
+      rightMotorB.setVelocity(accelerationValueLeft,percent);
+
+      leftMotorA.spin(forward);
+      leftMotorB.spin(forward);
+
+      rightMotorA.spin(forward);
+      rightMotorB.spin(forward);
+      }
+      if(tankActive == false)
+      {
+        if(arcadeTurnValue > 0)
+        {
+          //left turn
+          leftMotorA.setVelocity(arcadeTurnValue,percent);
+          leftMotorB.setVelocity(arcadeTurnValue,percent);
+
+          rightMotorA.setVelocity(-arcadeTurnValue,percent);
+          rightMotorB.setVelocity(-arcadeTurnValue,percent);
+
+          rightMotorA.spin(forward);
+          rightMotorB.spin(forward);
+
+          leftMotorA.spin(forward);
+          leftMotorB.spin(forward);
+        }
+        if(arcadeTurnValue < 0)
+        {
+          //left turn
+          leftMotorA.setVelocity(-arcadeTurnValue,percent);
+          leftMotorB.setVelocity(-arcadeTurnValue,percent);
+
+          rightMotorA.setVelocity(arcadeTurnValue,percent);
+          rightMotorB.setVelocity(arcadeTurnValue,percent);
+
+          leftMotorA.spin(forward);
+          leftMotorB.spin(forward);
+          
+          rightMotorA.spin(forward);
+          rightMotorB.spin(forward);
+        }
+      }
+      
     }
 
     if(Controller1.ButtonUp.pressing())
     {
-      if(intakeValue <= 55)
+      if(intakeValue <= 50)
       {
         intakeValue = intakeValue + 5;
       }
@@ -211,7 +265,7 @@ void userControl(void) {
 
     if(Controller1.ButtonDown.pressing())
     {
-      if(intakeValue >= -55)
+      if(intakeValue >= -50)
       {
         intakeValue = intakeValue - 5;
       }
@@ -240,6 +294,7 @@ int main() {
   Competition.autonomous(autonomous);
   Competition.drivercontrol(userControl);
 
+  
   // Run the pre-autonomous function.
   preAutonomous();
 
